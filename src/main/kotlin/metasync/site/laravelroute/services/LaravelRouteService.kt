@@ -12,8 +12,8 @@ import metasync.site.laravelroute.models.LaravelRoute
 
 object LaravelRouteService {
 
-    private val ROUTE_FILES = arrayOf("web.php", "api.php", "channels.php", "console.php")
-    private val ROUTE_METHODS = setOf("get", "post", "put", "patch", "delete", "options", "any", "match", "resource", "apiResource")
+    private val ROUTE_FILES = arrayOf("routes.php")
+    private val ROUTE_METHODS = setOf("get", "post", "any")
 
     fun getAllRoutes(project: Project): List<LaravelRoute> {
         val routes = mutableListOf<LaravelRoute>()
@@ -26,22 +26,14 @@ object LaravelRouteService {
             )
 
             files.forEach { file ->
-                // Check if file is in routes directory
-                if (isInRoutesDirectory(file)) {
-                    val psiFile = PsiManager.getInstance(project).findFile(file)
-                    if (psiFile is PhpFile) {
-                        routes.addAll(parseRoutesFromFile(psiFile))
-                    }
+                val psiFile = PsiManager.getInstance(project).findFile(file)
+                if (psiFile is PhpFile) {
+                    routes.addAll(parseRoutesFromFile(psiFile))
                 }
             }
         }
 
         return routes
-    }
-
-    private fun isInRoutesDirectory(file: VirtualFile): Boolean {
-        val parent = file.parent
-        return parent?.name == "routes"
     }
 
     private fun parseRoutesFromFile(file: PhpFile): List<LaravelRoute> {
@@ -77,31 +69,43 @@ object LaravelRouteService {
     }
 
     private fun extractRouteName(methodRef: MethodReference): String? {
-        // Look for chained ->name() call
+        val names = mutableListOf<String>()
+
+        // first parameter is the name
+        if (methodRef.parameterList != null && methodRef.parameters.isNotEmpty()) {
+            names.add((methodRef.parameters[0] as StringLiteralExpression).contents)
+        }
+
+        // walk backward if this is a group
         var parent = methodRef.parent
         while (parent != null) {
-            if (parent is MethodReference && parent.name == "name") {
-                // Extract the route name from the parameter
-                val paramList = parent.parameterList
-                if (paramList != null) {
-                    val params = paramList.parameters
-                    if (params.isNotEmpty() && params[0] is StringLiteralExpression) {
-                        return (params[0] as StringLiteralExpression).contents
-                    }
+            if (parent is MethodReference && parent.name == "group") {
+                val parentName = extractGroupAs(parent.parameterList);
+                if (parentName != null) {
+                    names.add(parentName);
                 }
             }
             parent = parent.parent
         }
 
-        // Alternative: parse from text using regex (fallback)
-        val text = methodRef.containingFile.text
-        val startOffset = methodRef.textOffset
-        val endOffset = minOf(startOffset + 200, text.length) // Look ahead 200 characters
+        return names.reversed().joinToString(separator = ".")
+    }
 
-        val searchText = text.substring(startOffset, endOffset)
-        val namePattern = Regex("""->name\(['"]([^'"]+)['"]\)""")
-        val matchResult = namePattern.find(searchText)
-
-        return matchResult?.groupValues?.get(1)
+    private fun extractGroupAs(params: ParameterList?): String? {
+        if (params == null || params.parameters.isEmpty()) {
+            return null
+        }
+        for (param in params.parameters) {
+            if (param is ArrayCreationExpression) {
+                for (arrayElement in param.children) {
+                    if (arrayElement is ArrayHashElement) {
+                        if ((arrayElement.key as StringLiteralExpression).contents == "as") {
+                            return (arrayElement.value as StringLiteralExpression).contents
+                        }
+                    }
+                }
+            }
+        }
+        return null
     }
 }

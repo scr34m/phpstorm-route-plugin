@@ -1,4 +1,4 @@
-rootProject.name = "laravel-route-navigator"
+rootProject.name = "route-navigator"
 
 dependencyResolutionManagement {
     repositories {

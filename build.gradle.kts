@@ -48,9 +48,9 @@ intellijPlatform {
             <h3>1.0.0</h3>
             <ul>
                 <li>Initial release</li>
-                <li>Navigate to Laravel route definitions by Ctrl+Click on route() calls</li>
+                <li>Navigate to route definitions by Ctrl+Click on route() calls</li>
                 <li>Autocompletion for route names</li>
-                <li>Support for web.php, api.php, and other Laravel route files</li>
+                <li>Support routes.php</li>
             </ul>
         """.trimIndent()
     }
