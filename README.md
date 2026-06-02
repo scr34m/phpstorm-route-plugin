@@ -13,7 +13,7 @@ Easy navigate by route name to controllers, searching for `routes.php` to build 
 ## Install
 - Open phpstorm
 - Settings / Plugins / Install from Disk and select zip file.
-- or use release build [route-navigator-1.0.0.zip](route-navigator-1.0.0.zip)
+- or [use latest release build](https://github.com/scr34m/phpstorm-route-plugin/releases/latest)
 
 ## Route example
 
