@@ -97,11 +97,10 @@ object LaravelRouteService {
         }
         for (param in params.parameters) {
             if (param is ArrayCreationExpression) {
-                for (arrayElement in param.children) {
-                    if (arrayElement is ArrayHashElement) {
-                        if ((arrayElement.key as StringLiteralExpression).contents == "as") {
-                            return (arrayElement.value as StringLiteralExpression).contents
-                        }
+                for (arrayElement in param.hashElements) {
+                    val key = arrayElement.key as? StringLiteralExpression ?: continue
+                    if (key.contents == "as") {
+                        return (arrayElement.value as? StringLiteralExpression)?.contents
                     }
                 }
             }
