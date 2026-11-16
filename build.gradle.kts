@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "metasync.site"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -41,10 +41,15 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = "251"
-            untilBuild = "253.*"
+            untilBuild = provider { null }
         }
 
         changeNotes = """
+            <h3>1.0.1</h3>
+            <ul>
+                <li>Compatibility with PhpStorm 2026.x</li>
+            </ul>
+
             <h3>1.0.0</h3>
             <ul>
                 <li>Initial release</li>
